@@ -52,7 +52,8 @@ extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
-
+extern u8 G_u8DebugScanfCharCount;
+bool   bRunFlag=TRUE;
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
 Variable names shall start with "UserApp1_" and be declared as static.
@@ -158,45 +159,60 @@ void UserApp1_state1(void)
 	LedPWM(LCD_GREEN, LED_PWM_0);
 	
 	PWMAudioOff(BUZZER1);
+    bRunFlag=TRUE;
 
 
 
 
-
-	UserApp1_StateMachine=UserApp1_state2;
+	UserApp1_StateMachine=UserApp1SM_Idle;
 }
 
 void UserApp1_state2(void)
 {
-	u8 u8String2[]="Entering state 2";
+     
+    u8 u8String2[]="Entering state 2";
+	
 	static u32 u32Time=0;
+	
 	u32Time++;
-
-	DebugPrintf(u8String2);
-	DebugLineFeed();
-	u8 au8Message[] = "STATE 2";
-	LCDCommand(LCD_CLEAR_CMD);
-	LCDMessage(LINE1_START_ADDR, au8Message);
-	LedBlink(GREEN, LED_2HZ);
-	LedBlink(YELLOW, LED_2HZ);
-	LedBlink(ORANGE, LED_4HZ);
-	LedBlink(RED, LED_2HZ);
-	LedOff(WHITE);
-	LedOff(PURPLE);
-	LedOff(BLUE);
-	LedOff(CYAN);
 	
-	LedPWM(LCD_RED, LED_PWM_100);
-	LedPWM(LCD_BLUE, LED_PWM_0);
-	LedPWM(LCD_GREEN, LED_PWM_50);
-	
-	if(u8Time==100)
+    if(bRunFlag)
 	{
-	  PWMAudioSetFrequency(BUZZER1,200);
-	  u8Count=0;
+		DebugPrintf(u8String2);
+		DebugLineFeed();
+		u8 au8Message[] = "STATE 2";
+		LCDCommand(LCD_CLEAR_CMD);
+		LCDMessage(LINE1_START_ADDR, au8Message);
+		LedBlink(GREEN, LED_2HZ);
+		LedBlink(YELLOW, LED_2HZ);
+		LedBlink(ORANGE, LED_4HZ);
+		LedBlink(RED, LED_2HZ);
+		LedOff(WHITE);
+		LedOff(PURPLE);
+		LedOff(BLUE);
+		LedOff(CYAN);
+	
+		LedPWM(LCD_RED, LED_PWM_100);
+		LedPWM(LCD_BLUE, LED_PWM_0);
+		LedPWM(LCD_GREEN, LED_PWM_50);
+		
+		bRunFlag=FALSE;
+	}
+    
+	if(u32Time==100)
+	{
+      PWMAudioOff(BUZZER1);
 	}
 	
-	UserApp1_StateMachine=UserApp1_state1;
+	if(u32Time==1000)
+	{
+      PWMAudioOn(BUZZER1);
+	  u32Time=0;
+	}
+    
+	
+	UserApp1_StateMachine=UserApp1SM_Idle;
+   
 }
 
 /**********************************************************************************************************************
@@ -207,15 +223,87 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-	if(WasButtonPressed(BUTTON1))
+	static bool bFlag1=FALSE;
+	static bool bFlag2=FALSE;
+	static u8 u8Count1=0;
+	static u8 u8Count2=0;
+	
+	static u8 au8buffer[1]=0;
+	
+	
+	
+	if(G_u8DebugScanfCharCount==1)
+	{
+	  DebugScanf(au8buffer);
+	  u8Count1++;
+	  u8Count2++;
+	}
+	
+	if(u8Count1==1)
+	{
+	  if(au8buffer[0]!='1')
+	  {
+		u8Count1=0;
+		bFlag1=FALSE;
+	  }	
+	}
+	
+	if(u8Count1==2)
+	{
+	  if(au8buffer[0]!='\r')
+	  {
+		u8Count1=0;
+		bFlag1=FALSE;
+	  }
+	  else
+	  {
+		bFlag1=TRUE;
+		u8Count1=0;
+	  }
+	}
+	
+	if(u8Count2==1)
+	{
+	  if(au8buffer[0]!='2')
+	  {
+		u8Count2=0;
+		bFlag2=FALSE;
+	  }	
+	}
+	
+	if(u8Count2==2)
+	{
+	  if(au8buffer[0]!='\r')
+	  {
+		u8Count2=0;
+		bFlag2=FALSE;
+	  }
+	  else
+	  {
+		bFlag2=TRUE;
+		u8Count2=0;
+	  }
+	}
+	
+	
+	
+    
+    if(WasButtonPressed(BUTTON1)||bFlag1)
 	{
 		ButtonAcknowledge(BUTTON1);
 		UserApp1_StateMachine=UserApp1_state1;
+		bFlag1=FALSE;
+		bFlag2=FALSE;
 	}
-
+	
 	if(WasButtonPressed(BUTTON2))
 	{
-		ButtonAcknowledge(BUTTON2);
+	  ButtonAcknowledge(BUTTON2);
+	  bFlag2=TRUE;
+	}
+
+	if(bFlag2)
+	{
 		UserApp1_StateMachine=UserApp1_state2;
 	}
 } /* end UserApp1SM_Idle() */

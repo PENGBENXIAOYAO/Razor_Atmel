@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-377364833
+Checksum=43679105
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -28,6 +28,9 @@ TracePortSize=0x00000000
 LoggingEnabled=_ 0
 LogFile=_ ""
 Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [CallStackLog]
 Enabled=0
 [DriverProfiling]
@@ -36,9 +39,6 @@ Mode=0
 Graph=0
 Symbiont=0
 Exclusions=
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
 [Disassemble mode]
 mode=0
 [Breakpoints2]

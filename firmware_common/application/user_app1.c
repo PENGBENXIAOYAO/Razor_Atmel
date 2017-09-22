@@ -87,6 +87,16 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+ 	LedOff(WHITE);
+	LedOff(PURPLE);
+	LedOff(BLUE);
+	LedOff(CYAN);
+	LedOff(GREEN);
+	LedOff(YELLOW);
+	LedOff(ORANGE);
+	LedOff(RED);
+	PWMAudioSetFrequency(BUZZER1,200);
+	PWMAudioOff(BUZZER1);
  
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -126,7 +136,68 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
+void UserApp1_state1(void)
+{
+	u8 u8String1[]="Entering state 1";
 
+	DebugPrintf(u8String1);
+	DebugLineFeed();
+	u8 au8Message[] = "STATE 1";
+	LCDCommand(LCD_CLEAR_CMD);
+	LCDMessage(LINE1_START_ADDR, au8Message);
+	LedOn(WHITE);
+	LedOn(PURPLE);
+	LedOn(BLUE);
+	LedOn(CYAN);
+	LedOff(GREEN);
+	LedOff(YELLOW);
+	LedOff(ORANGE);
+	LedOff(RED);
+	LedPWM(LCD_RED, LED_PWM_100);
+	LedPWM(LCD_BLUE, LED_PWM_100);
+	LedPWM(LCD_GREEN, LED_PWM_0);
+	
+	PWMAudioOff(BUZZER1);
+
+
+
+
+
+	UserApp1_StateMachine=UserApp1_state2;
+}
+
+void UserApp1_state2(void)
+{
+	u8 u8String2[]="Entering state 2";
+	static u32 u32Time=0;
+	u32Time++;
+
+	DebugPrintf(u8String2);
+	DebugLineFeed();
+	u8 au8Message[] = "STATE 2";
+	LCDCommand(LCD_CLEAR_CMD);
+	LCDMessage(LINE1_START_ADDR, au8Message);
+	LedBlink(GREEN, LED_2HZ);
+	LedBlink(YELLOW, LED_2HZ);
+	LedBlink(ORANGE, LED_4HZ);
+	LedBlink(RED, LED_2HZ);
+	LedOff(WHITE);
+	LedOff(PURPLE);
+	LedOff(BLUE);
+	LedOff(CYAN);
+	
+	LedPWM(LCD_RED, LED_PWM_100);
+	LedPWM(LCD_BLUE, LED_PWM_0);
+	LedPWM(LCD_GREEN, LED_PWM_50);
+	
+	if(u8Time==100)
+	{
+	  PWMAudioSetFrequency(BUZZER1,200);
+	  u8Count=0;
+	}
+	
+	UserApp1_StateMachine=UserApp1_state1;
+}
 
 /**********************************************************************************************************************
 State Machine Function Definitions
@@ -136,15 +207,25 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+	if(WasButtonPressed(BUTTON1))
+	{
+		ButtonAcknowledge(BUTTON1);
+		UserApp1_StateMachine=UserApp1_state1;
+	}
 
+	if(WasButtonPressed(BUTTON2))
+	{
+		ButtonAcknowledge(BUTTON2);
+		UserApp1_StateMachine=UserApp1_state2;
+	}
 } /* end UserApp1SM_Idle() */
-    
+		
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
 static void UserApp1SM_Error(void)          
 {
-  
+	
 } /* end UserApp1SM_Error() */
 
 
